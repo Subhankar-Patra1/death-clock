@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Death Clock New Tab",
+  "version": "1.0",
+  "description": "A new tab page replacement with a dark theme, spiral calendar, and personalized widgets to help you reflect on your time and stay productive.",
+  "icons": {
+    "72": "icons/icon72.png",
+    "96": "icons/icon96.png",
+    "128": "icons/icon128.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+  },
+  "host_permissions": [
+    "https://dummyjson.com/*",
+    "https://en.wikipedia.org/*"
+  ],
+  "action": {
+    "default_icon": {
+      "72": "icons/icon72.png",
+      "96": "icons/icon96.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Death Clock New Tab"
+  }
+}
