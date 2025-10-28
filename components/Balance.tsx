@@ -72,7 +72,7 @@ const Balance: React.FC = () => {
             </button>
         </div>
       </div>
-       <div className={`transition-[max-height,opacity,margin] duration-500 ease-in-out overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0 !mt-0' : 'max-h-32 opacity-100 mt-2'}`}>
+       <div className={`transition-[max-height,opacity,margin] duration-500 ease-in-out overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0 !mt-0' : 'max-h-24 opacity-100 mt-2'}`}>
         {isEditing ? (
             <input
             ref={inputRef}
@@ -88,7 +88,7 @@ const Balance: React.FC = () => {
             ₹{balanceData.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
         )}
-        <p className="text-xs text-gray-600 mt-1">Last updated: {formatLastUpdated()}</p>
+        <p className="text-xs text-gray-600 mt-0.5">Last updated: {formatLastUpdated()}</p>
       </div>
     </div>
   );

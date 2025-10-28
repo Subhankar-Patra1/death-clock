@@ -58,7 +58,7 @@ npm run dev
 │   ├── Goal.tsx        # Goal setting component
 │   ├── Greeting.tsx    # Personalized greeting
 │   ├── LifespanConfig.tsx # Lifespan configuration
-│   ├── QuickLinks.tsx  # Quick access links
+│
 │   ├── Quote.tsx       # Motivational quotes
 │   ├── SearchBar.tsx   # Search functionality
 │   └── SoundToggle.tsx # Audio controls
