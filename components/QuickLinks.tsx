@@ -215,7 +215,10 @@ const QuickLinks: React.FC = () => {
 
   const editContent = (
     <div className="space-y-2">
-      <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+      <div className="max-h-64 overflow-y-auto space-y-2 pr-2 quicklinks-scroll" style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: '#6b7280 #0a0a0f'
+      }}>
         {links.map((link, index) => (
           <div 
             key={link.id} 
