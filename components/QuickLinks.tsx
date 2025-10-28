@@ -214,77 +214,79 @@ const QuickLinks: React.FC = () => {
 
 
   const editContent = (
-    <div className="max-h-80 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-      {links.map((link, index) => (
-        <div 
-          key={link.id} 
-          draggable
-          onDragStart={(e) => handleDragStart(e, index)}
-          onDragEnter={() => handleDragEnter(index)}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={() => handleDrop(index)}
-          onDragEnd={handleDragEnd}
-          className={`relative flex items-center space-x-2 bg-[#1a1a1a] p-2 rounded-lg transition-opacity duration-300 ${
-            draggedIndex === index ? 'opacity-30' : 'opacity-100'
-          }`}
-        >
-          {dragOverIndex === index && (
-            <div className="absolute top-[-2px] left-0 right-0 h-0.5 bg-cyan-400 rounded-full"></div>
-          )}
-          <span className="cursor-move text-gray-500 touch-none">
-            <DragHandleIcon />
-          </span>
-          <div className="flex items-center justify-center w-6 h-6">
-            {loadingFavicons.has(index) ? (
-              <div className="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-            ) : link.favicon ? (
-              <img 
-                src={link.favicon} 
-                alt={`${link.name} favicon`}
-                className="w-5 h-5 rounded-sm"
-                onError={(e) => {
-                  // Fallback to generic icon if favicon fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <span className={`text-gray-400 ${link.favicon ? 'hidden' : ''}`}>
-              {iconMap[link.icon] || iconMap['Generic']}
-            </span>
-          </div>
-          <input
-            type="text"
-            value={link.name}
-            onChange={(e) => handleLinkChange(index, 'name', e.target.value)}
-            placeholder="Name"
-            className="flex-grow bg-[#0a0a0f] text-white border border-gray-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
-            autoComplete="off"
-            spellCheck="false"
-          />
-          <input
-            type="url"
-            value={link.url}
-            onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-            placeholder="https://example.com"
-            className="flex-grow bg-[#0a0a0f] text-white border border-gray-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
-            autoComplete="off"
-            spellCheck="false"
-          />
-          <button
-            onClick={() => handleDeleteLink(index)}
-            className="text-red-500 hover:text-red-400 p-1"
-            title="Remove Link"
+    <div className="space-y-2">
+      <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+        {links.map((link, index) => (
+          <div 
+            key={link.id} 
+            draggable
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragEnter={() => handleDragEnter(index)}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={() => handleDrop(index)}
+            onDragEnd={handleDragEnd}
+            className={`relative flex items-center space-x-2 bg-[#1a1a1a] p-2 rounded-lg transition-opacity duration-300 ${
+              draggedIndex === index ? 'opacity-30' : 'opacity-100'
+            }`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-          </button>
-        </div>
-      ))}
+            {dragOverIndex === index && (
+              <div className="absolute top-[-2px] left-0 right-0 h-0.5 bg-cyan-400 rounded-full"></div>
+            )}
+            <span className="cursor-move text-gray-500 touch-none">
+              <DragHandleIcon />
+            </span>
+            <div className="flex items-center justify-center w-6 h-6">
+              {loadingFavicons.has(index) ? (
+                <div className="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+              ) : link.favicon ? (
+                <img 
+                  src={link.favicon} 
+                  alt={`${link.name} favicon`}
+                  className="w-5 h-5 rounded-sm"
+                  onError={(e) => {
+                    // Fallback to generic icon if favicon fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <span className={`text-gray-400 ${link.favicon ? 'hidden' : ''}`}>
+                {iconMap[link.icon] || iconMap['Generic']}
+              </span>
+            </div>
+            <input
+              type="text"
+              value={link.name}
+              onChange={(e) => handleLinkChange(index, 'name', e.target.value)}
+              placeholder="Name"
+              className="flex-grow bg-[#0a0a0f] text-white border border-gray-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              autoComplete="off"
+              spellCheck="false"
+            />
+            <input
+              type="url"
+              value={link.url}
+              onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
+              placeholder="https://example.com"
+              className="flex-grow bg-[#0a0a0f] text-white border border-gray-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              autoComplete="off"
+              spellCheck="false"
+            />
+            <button
+              onClick={() => handleDeleteLink(index)}
+              className="text-red-500 hover:text-red-400 p-1"
+              title="Remove Link"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+            </button>
+          </div>
+        ))}
+      </div>
       <button
         onClick={handleAddLink}
-        className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg transition-colors text-sm mt-2"
+        className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg transition-colors text-sm"
       >
         + Add New Link
       </button>
