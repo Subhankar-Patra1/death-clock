@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Death Clock New Tab",
   "version": "1.0",
-  "description": "A new tab page replacement with a dark theme, spiral calendar, and personalized widgets to help you reflect on your time and stay productive.",
+  "description": "A dark-themed new tab replacement with death clock, personalized widgets, and productivity tools to help you reflect on time.",
   "icons": {
     "72": "icons/icon72.png",
     "96": "icons/icon96.png",
