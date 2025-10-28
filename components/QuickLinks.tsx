@@ -31,6 +31,7 @@ const CollapseIcon = ({ isCollapsed }: { isCollapsed: boolean }) => (
 );
 
 interface Link {
+  id: string;
   name: string;
   url: string;
   icon: string;
@@ -38,16 +39,28 @@ interface Link {
 }
 
 const initialLinks: Link[] = [
-  { name: 'YouTube', url: 'https://youtube.com', icon: 'YouTube' },
-  { name: 'Gmail', url: 'https://gmail.com', icon: 'Gmail' },
-  { name: 'Medium', url: 'https://medium.com', icon: 'Medium' },
-  { name: 'GitHub', url: 'https://github.com', icon: 'GitHub' },
-  { name: 'Notion', url: 'https://notion.so', icon: 'Notion' },
-  { name: 'Calendar', url: 'https://calendar.google.com', icon: 'Calendar' },
+  { id: 'youtube', name: 'YouTube', url: 'https://youtube.com', icon: 'YouTube' },
+  { id: 'gmail', name: 'Gmail', url: 'https://gmail.com', icon: 'Gmail' },
+  { id: 'medium', name: 'Medium', url: 'https://medium.com', icon: 'Medium' },
+  { id: 'github', name: 'GitHub', url: 'https://github.com', icon: 'GitHub' },
+  { id: 'notion', name: 'Notion', url: 'https://notion.so', icon: 'Notion' },
+  { id: 'calendar', name: 'Calendar', url: 'https://calendar.google.com', icon: 'Calendar' },
 ];
 
 const QuickLinks: React.FC = () => {
   const [links, setLinks] = useLocalStorage<Link[]>('quick-links', initialLinks);
+  
+  // Migration: Add IDs to existing links that don't have them
+  React.useEffect(() => {
+    const linksNeedingIds = links.some(link => !link.id);
+    if (linksNeedingIds) {
+      const updatedLinks = links.map((link, index) => ({
+        ...link,
+        id: link.id || `migrated-${index}-${Date.now()}`
+      }));
+      setLinks(updatedLinks);
+    }
+  }, []);
   const [isEditing, setIsEditing] = React.useState(false);
   const [isCollapsed, toggleCollapsed] = useCollapsibleWidget('widget-quicklinks-collapsed');
   
@@ -144,7 +157,8 @@ const QuickLinks: React.FC = () => {
   };
 
   const handleAddLink = () => {
-    setLinks([...links, { name: 'New Site', url: 'https://', icon: 'Generic', favicon: undefined }]);
+    const newId = `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setLinks([...links, { id: newId, name: 'New Site', url: 'https://', icon: 'Generic', favicon: undefined }]);
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -200,10 +214,10 @@ const QuickLinks: React.FC = () => {
 
 
   const editContent = (
-    <div className="space-y-2">
+    <div className="max-h-80 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       {links.map((link, index) => (
         <div 
-          key={link.name + link.url + index} 
+          key={link.id} 
           draggable
           onDragStart={(e) => handleDragStart(e, index)}
           onDragEnter={() => handleDragEnter(index)}
@@ -278,16 +292,17 @@ const QuickLinks: React.FC = () => {
   );
 
   const viewContent = (
-      <div className="flex flex-wrap gap-4">
-        {links.map((link, index) => (
-          <a
-            key={`${link.name}-${index}`}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={link.name}
-            className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-cyan-500 transition-colors duration-300 group"
-          >
+      <div className="max-h-60 overflow-y-auto">
+        <div className="flex flex-wrap gap-4 pb-2">
+          {links.map((link, index) => (
+            <a
+              key={link.id}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={link.name}
+              className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-cyan-500 transition-colors duration-300 group"
+            >
             {link.favicon ? (
               <img 
                 src={link.favicon} 
@@ -306,6 +321,7 @@ const QuickLinks: React.FC = () => {
             </span>
           </a>
         ))}
+        </div>
       </div>
   );
 
