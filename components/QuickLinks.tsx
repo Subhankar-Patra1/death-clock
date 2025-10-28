@@ -34,6 +34,7 @@ interface Link {
   name: string;
   url: string;
   icon: string;
+  favicon?: string;
 }
 
 const initialLinks: Link[] = [
@@ -53,11 +54,70 @@ const QuickLinks: React.FC = () => {
   const dragItem = React.useRef<number | null>(null);
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
+  const [loadingFavicons, setLoadingFavicons] = React.useState<Set<number>>(new Set());
+
+  // Function to extract domain from URL
+  const getDomainFromUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+      return urlObj.hostname;
+    } catch {
+      return '';
+    }
+  };
+
+  // Function to fetch favicon
+  const fetchFavicon = async (url: string, index: number): Promise<string | null> => {
+    const domain = getDomainFromUrl(url);
+    if (!domain) return null;
+
+    setLoadingFavicons(prev => new Set(prev).add(index));
+
+    try {
+      // Try multiple favicon sources
+      const faviconSources = [
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=64`,
+        `https://${domain}/favicon.ico`,
+        `https://${domain}/favicon.png`,
+        `https://icons.duckduckgo.com/ip3/${domain}.ico`
+      ];
+
+      for (const faviconUrl of faviconSources) {
+        try {
+          const response = await fetch(faviconUrl, { mode: 'no-cors' });
+          // For no-cors, we can't check response status, so we assume it worked
+          return faviconUrl;
+        } catch {
+          continue;
+        }
+      }
+      
+      // Fallback to Google's favicon service (most reliable)
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    } catch {
+      return null;
+    } finally {
+      setLoadingFavicons(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
+    }
+  };
 
 
-  const handleLinkChange = (index: number, field: 'name' | 'url', value: string) => {
+  const handleLinkChange = async (index: number, field: 'name' | 'url', value: string) => {
     const newLinks = [...links];
     newLinks[index] = { ...newLinks[index], [field]: value };
+    
+    // If URL is being changed and it's a valid URL, fetch favicon
+    if (field === 'url' && value && value.length > 7) {
+      const favicon = await fetchFavicon(value, index);
+      if (favicon) {
+        newLinks[index] = { ...newLinks[index], favicon };
+      }
+    }
+    
     setLinks(newLinks);
   };
 
@@ -66,7 +126,7 @@ const QuickLinks: React.FC = () => {
   };
 
   const handleAddLink = () => {
-    setLinks([...links, { name: 'New Site', url: 'https://', icon: 'Generic' }]);
+    setLinks([...links, { name: 'New Site', url: 'https://', icon: 'Generic', favicon: undefined }]);
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
@@ -143,20 +203,43 @@ const QuickLinks: React.FC = () => {
           <span className="cursor-move text-gray-500 touch-none">
             <DragHandleIcon />
           </span>
-          <span className="text-gray-400">{iconMap[link.icon] || iconMap['Generic']}</span>
+          <div className="flex items-center justify-center w-6 h-6">
+            {loadingFavicons.has(index) ? (
+              <div className="w-4 h-4 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+            ) : link.favicon ? (
+              <img 
+                src={link.favicon} 
+                alt={`${link.name} favicon`}
+                className="w-5 h-5 rounded-sm"
+                onError={(e) => {
+                  // Fallback to generic icon if favicon fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <span className={`text-gray-400 ${link.favicon ? 'hidden' : ''}`}>
+              {iconMap[link.icon] || iconMap['Generic']}
+            </span>
+          </div>
           <input
             type="text"
             value={link.name}
             onChange={(e) => handleLinkChange(index, 'name', e.target.value)}
             placeholder="Name"
             className="flex-grow bg-[#0a0a0f] text-white border border-gray-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+            autoComplete="off"
+            spellCheck="false"
           />
           <input
-            type="text"
+            type="url"
             value={link.url}
             onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-            placeholder="URL"
+            placeholder="https://example.com"
             className="flex-grow bg-[#0a0a0f] text-white border border-gray-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500"
+            autoComplete="off"
+            spellCheck="false"
           />
           <button
             onClick={() => handleDeleteLink(index)}
@@ -178,16 +261,31 @@ const QuickLinks: React.FC = () => {
 
   const viewContent = (
       <div className="flex flex-wrap gap-4">
-        {links.map((link) => (
+        {links.map((link, index) => (
           <a
-            key={link.name}
+            key={`${link.name}-${index}`}
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
             title={link.name}
-            className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-cyan-500 transition-colors duration-300"
+            className="w-10 h-10 bg-[#1a1a1a] rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-cyan-500 transition-colors duration-300 group"
           >
-            {iconMap[link.icon] || iconMap['Generic']}
+            {link.favicon ? (
+              <img 
+                src={link.favicon} 
+                alt={`${link.name} favicon`}
+                className="w-6 h-6 rounded-sm group-hover:scale-110 transition-transform duration-200"
+                onError={(e) => {
+                  // Fallback to generic icon if favicon fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <span className={`${link.favicon ? 'hidden' : ''}`}>
+              {iconMap[link.icon] || iconMap['Generic']}
+            </span>
           </a>
         ))}
       </div>
