@@ -55,6 +55,7 @@ const QuickLinks: React.FC = () => {
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
   const [loadingFavicons, setLoadingFavicons] = React.useState<Set<number>>(new Set());
+  const faviconTimeouts = React.useRef<Map<number, NodeJS.Timeout>>(new Map());
 
   // Function to extract domain from URL
   const getDomainFromUrl = (url: string): string => {
@@ -106,19 +107,36 @@ const QuickLinks: React.FC = () => {
   };
 
 
-  const handleLinkChange = async (index: number, field: 'name' | 'url', value: string) => {
+  const handleLinkChange = (index: number, field: 'name' | 'url', value: string) => {
     const newLinks = [...links];
     newLinks[index] = { ...newLinks[index], [field]: value };
-    
-    // If URL is being changed and it's a valid URL, fetch favicon
-    if (field === 'url' && value && value.length > 7) {
-      const favicon = await fetchFavicon(value, index);
-      if (favicon) {
-        newLinks[index] = { ...newLinks[index], favicon };
-      }
-    }
-    
     setLinks(newLinks);
+    
+    // If URL is being changed and it's a valid URL, fetch favicon with debounce
+    if (field === 'url' && value && value.length > 7) {
+      // Clear existing timeout for this index
+      const existingTimeout = faviconTimeouts.current.get(index);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+      
+      // Set new timeout for favicon fetching
+      const timeoutId = setTimeout(async () => {
+        const favicon = await fetchFavicon(value, index);
+        if (favicon) {
+          setLinks(currentLinks => {
+            const updatedLinks = [...currentLinks];
+            if (updatedLinks[index] && updatedLinks[index].url === value) {
+              updatedLinks[index] = { ...updatedLinks[index], favicon };
+            }
+            return updatedLinks;
+          });
+        }
+        faviconTimeouts.current.delete(index);
+      }, 1000); // 1 second delay to avoid too many requests while typing
+      
+      faviconTimeouts.current.set(index, timeoutId);
+    }
   };
 
   const handleDeleteLink = (index: number) => {
